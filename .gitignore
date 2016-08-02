@@ -1,0 +1,5 @@
+/.idea
+workerman.log
+Applications/Statistics/data/
+Applications/Statistics/Config/Cache/
+*.pid
