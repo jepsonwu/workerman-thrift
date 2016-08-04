@@ -1,9 +1,0 @@
-Time:2016-08-04 16:51:05
-Error:Unknown column 'UIDs' in 'where clause'[SELECT  * FROM user WHERE  UIDs = '1'  LIMIT 2]
-
-Time:2016-08-04 17:18:31
-Error:Duplicate entry '4' for key 'uid'[INSERT  INTO user (`WID`, `Nickname`)  VALUES ('4', 'test')]
-
-Time:2016-08-04 17:22:47
-Error:Duplicate entry '4' for key 'uid'[INSERT  INTO user (`WID`, `Nickname`)  VALUES ('4', 'test')]
-
