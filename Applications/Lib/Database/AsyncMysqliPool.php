@@ -144,6 +144,9 @@ class AsyncMysqliPool
                 case "DETELE":
                     $data = mysqli_affected_rows($mysqli);
                     break;
+                default:
+                    $data = $result;
+                    break;
             }
             if (is_object($result)) {
                 mysqli_free_result($result);

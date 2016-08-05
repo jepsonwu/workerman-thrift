@@ -1,0 +1,9 @@
+Time:2016-08-05 10:06:07
+Error:Duplicate entry '0' for key 'uid'[INSERT  INTO user (`Nickname`)  VALUES ('test1470362767')]
+
+Time:2016-08-05 10:32:51
+Error:Duplicate entry '0' for key 'uid'[INSERT  INTO user (`Nickname`)  VALUES ('test1470364371')]
+
+Time:2016-08-05 10:35:32
+Error:Duplicate entry '0' for key 'uid'[INSERT  INTO user (`Nickname`)  VALUES ('test1470364532')]
+

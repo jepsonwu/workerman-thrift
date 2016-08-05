@@ -16,6 +16,32 @@ use Workerman\Worker;
 //bootstrap
 require_once __DIR__ . "/../Bootstrap/Bootstrap.php";
 
+//demo
+$config = \Application\Lib\Factory::config('mysql');
+$db = Application\Lib\Db::getInstance($config);
+$select = $db->select()->setTable("user");
+
+function callback($result)
+{
+    if (is_array($result))
+        print_r($result);
+    else
+        var_dump($result);
+}
+
+//$select->where("Type", 2);
+//$db->asyncGet(2, "*", 'callback');
+//
+//$select->where("UID", 3);
+//$db->asyncGetRow("*", 'callback');
+//$db->asyncGetOne("nickname", 'callback');
+$db->asyncInsert(array(
+    "Nickname" => "test" . time()
+), 'callback');
+
+//$db->asyncTableExists("user","callback");
+exit;
+
 //workerman
 require_once __DIR__ . '/../../Workerman/Autoloader.php';
 require_once __DIR__ . '/ThriftWorker.php';

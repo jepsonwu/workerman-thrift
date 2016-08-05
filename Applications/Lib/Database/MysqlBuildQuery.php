@@ -12,7 +12,7 @@ use \Exception;
  * Date: 16/8/4
  * Time: 上午10:14
  */
-class BuildQuery
+class MysqlBuildQuery
 {
     public static $_instance = null;
 
@@ -133,6 +133,15 @@ class BuildQuery
     }
 
     /**
+     * 返回表前缀
+     * @return string
+     */
+    public function getPrefix()
+    {
+        return $this->_prefix;
+    }
+
+    /**
      * 设置表名
      * @param $tablename
      * @return $this
@@ -146,6 +155,15 @@ class BuildQuery
         }
 
         return $this;
+    }
+
+    /**
+     * 返回表名
+     * @return string
+     */
+    public function getTable()
+    {
+        return $this->_tableName;
     }
 
     /**
@@ -415,6 +433,70 @@ class BuildQuery
     }
 
     /**
+     * 构建表详情语句
+     * @param $db
+     * @param $tables
+     * @param string $columns
+     * @return string
+     */
+    public function tableExistsSql($db, $tables, $columns = "*")
+    {
+        array_walk($tables, function (&$val) {
+            $val = $this->_prefix . $val;
+        });
+        $this->setTable("information_schema.tables");
+
+        $this->where('table_schema', $db);
+        $this->where('table_name', $tables, 'in');
+        return $this->selectSql(count($tables), $columns);
+    }
+
+    /**
+     * 开始事务语句
+     * @return string
+     */
+    public function startTransactionSql()
+    {
+        $this->_lastQuery = "START TRANSACTION";
+        $this->reset();
+        return $this->_lastQuery;
+    }
+
+    /**
+     * 提交事务语句
+     * @return string
+     */
+    public function commitSql()
+    {
+        $this->_lastQuery = "COMMIT";
+        $this->reset();
+        return $this->_lastQuery;
+    }
+
+    /**
+     * 回滚事务语句
+     * @return string
+     */
+    public function rollbackSql()
+    {
+        $this->_lastQuery = "ROLLBACK";
+        $this->reset();
+        return $this->_lastQuery;
+    }
+
+    /**
+     * 设置自动提交语句
+     * @param bool $true
+     * @return string
+     */
+    public function autocommitSql($true = true)
+    {
+        $this->_lastQuery = "SET AUTOCOMMIT =" . intval($true);
+        $this->reset();
+        return $this->_lastQuery;
+    }
+
+    /**
      * 返回最后执行语句
      * @return string
      */
@@ -469,6 +551,7 @@ class BuildQuery
         }
 
         $this->_lastQuery = $this->replacePlaceHolders($this->_query, $this->_bindParams);
+        $this->reset();
 
         return $this->_lastQuery;
     }

@@ -2,31 +2,7 @@
 namespace Application\Lib;
 
 use Application\Lib\Database\AsyncMysqliPool;
-use Application\Lib\Database\BuildQuery;
-
-//demo
-//$config = \Application\Lib\Factory::config('mysql');
-//$db = Application\Lib\Db::getInstance($config);
-//$select = $db->select()->setTable("user");
-//
-//function callback($result)
-//{
-//    if (is_array($result))
-//        print_r($result);
-//    else
-//        var_dump($result);
-//}
-//
-//$select->where("Type", 2);
-//$db->asyncGet(2, "*", 'callback');
-//
-//$select->where("UID", 3);
-//$db->asyncGetRow("*", 'callback');
-//$db->asyncGetOne("nickname", 'callback');
-//$db->asyncInsert(array(
-//    "Nickname" => "test" . time()
-//), 'callback');
-//exit;
+use Application\Lib\Database\MysqlBuildQuery;
 
 /**
  * db 操作类
@@ -129,7 +105,7 @@ class Db
     public function select()
     {
         if (is_null($this->_select)) {
-            $this->_select = BuildQuery::getInstance();
+            $this->_select = MysqlBuildQuery::getInstance();
         }
 
         return $this->_select;
@@ -155,7 +131,6 @@ class Db
     {
         $column = empty($columns) ? '*' : (is_array($columns) ? implode(', ', $columns) : $columns);
         $query = $this->select()->selectSql($numRows, $column);
-        $this->select()->reset();
         $this->mysql()->query($query, $callback);//todo 能否在包一层方法
     }
 
@@ -187,7 +162,6 @@ class Db
     public function asyncInsert($data, callable $callback)
     {
         $query = $this->select()->insertSql($data);
-        $this->select()->reset();
         $this->mysql()->query($query, $callback);
     }
 
@@ -199,7 +173,6 @@ class Db
     public function asyncUpdate($data, callable $callback)
     {
         $query = $this->select()->updateSql($data);
-        $this->select()->reset();
         $this->mysql()->query($query, $callback);
     }
 
@@ -210,7 +183,21 @@ class Db
     public function asyncDelete(callable $callback)
     {
         $query = $this->select()->deleteSql();
-        $this->select()->reset();
+        $this->mysql()->query($query, $callback);
+    }
+
+    /**
+     * 异步查询表详情
+     * @param $tables
+     * @param callable $callback
+     * @param string $columns
+     */
+    public function asyncTableExists($tables, callable $callback, $columns = "table_name")
+    {
+        $tables = (array)$tables;
+        empty($tables) && call_user_func($callback, false);
+
+        $query = $this->select()->tableExistsSql($this->_config['database'], $tables, $columns);
         $this->mysql()->query($query, $callback);
     }
 }
