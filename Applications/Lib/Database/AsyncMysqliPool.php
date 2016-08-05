@@ -3,7 +3,9 @@ namespace Application\Lib\Database;
 
 /**
  * from https://github.com/swoole/mysql-async/blob/master/Swoole/Async/MySQL.php
- * 基于swoole的mysql异步操作类  驱动采用Mysqli
+ * 基于swoole的mysqli异步连接池操作类
+ * 支持事务
+ *
  */
 class AsyncMysqliPool
 {
@@ -44,6 +46,12 @@ class AsyncMysqliPool
     protected $wait_queue = array();
 
     /**
+     * 等待队列大小 0为无上限
+     * @var int
+     */
+    protected $wait_queue_size = 0;
+
+    /**
      * @param array $config
      * @param int $pool_size
      * @throws \Exception
@@ -56,6 +64,15 @@ class AsyncMysqliPool
 
         $this->config = $config;
         $this->pool_size = $pool_size;
+    }
+
+    /**
+     * 设置等待队列大小
+     * @param $num
+     */
+    public function setWaitQueueSize($num)
+    {
+        $this->wait_queue_size = intval($num);
     }
 
     /**
@@ -115,97 +132,124 @@ class AsyncMysqliPool
     {
         $task = empty($this->work_pool[$db_sock]) ? null : $this->work_pool[$db_sock];
         if (empty($task)) {
-            //echo "MySQLi Warning: Maybe SQLReady receive a Close event , such as Mysql server close the socket !\n";
             $this->removeConnection($db_sock);
             return false;
         }
 
-        /**
-         * @var \mysqli $mysqli
-         */
         $mysqli = $task['mysql']['object'];
         $callback = $task['callback'];
 
+        //获取执行结果
         $data = null;
         if ($result = $mysqli->reap_async_query()) {
-            //todo optimize
-            switch (substr($task['sql'], 0, 6)) {
-                case "SELECT":
-                    mysqli_data_seek($result, 0);
-                    $data = mysqli_fetch_all($result, MYSQLI_ASSOC);
-                    break;
-                case "INSERT":
-                    $data = mysqli_affected_rows($mysqli);
-                    $data == 1 && $data = mysqli_insert_id($mysqli);
-                    break;
-                case "UPDATE":
-                    $data = mysqli_affected_rows($mysqli);
-                    break;
-                case "DETELE":
-                    $data = mysqli_affected_rows($mysqli);
-                    break;
-                default:
-                    $data = $result;
-                    break;
-            }
-            if (is_object($result)) {
-                mysqli_free_result($result);
-            }
+            $data = $this->doResult($task['sql'], $mysqli, $result);
         } else {
             self::errorLog(mysqli_error($mysqli) . "[" . $task['sql'] . "]");
         }
+
+        //执行回调函数
         call_user_func($callback, $data);
 
-        //release mysqli object
-        $this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
-        unset($this->work_pool[$db_sock]);
-
-        //fetch a request from wait queue.
+        //添加到空闲池 保持连接情况
+        if (!$task['retain']) {
+            $this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
+            unset($this->work_pool[$db_sock]);
+        }
+        
+        //出队列等待执行sql
         if (count($this->wait_queue) > 0) {
             $idle_n = count($this->idle_pool);
             for ($i = 0; $i < $idle_n; $i++) {
                 $new_task = array_shift($this->wait_queue);
-                $this->doQuery($new_task['sql'], $new_task['callback']);
+                $this->doQuery($new_task['sql'], $new_task['callback'], null, $new_task['retain']);
             }
         }
     }
 
     /**
-     * @param string $sql
-     * @param callable $callback
+     * 处理结果
+     * @param $sql
+     * @param $mysqli
+     * @param $result
+     * @return null
      */
-    public function query($sql, callable $callback)
+    protected function doResult($sql, $mysqli, $result)
     {
-        //no idle connection
-        if (count($this->idle_pool) == 0) {
-            if ($this->connection_num < $this->pool_size) {
-                $this->createConnection();
-                $this->doQuery($sql, $callback);
-            } else {
-                $this->wait_queue[] = array(
-                    'sql' => $sql,
-                    'callback' => $callback,
-                );
+        $data = null;
+        switch (substr($sql, 0, 6)) {
+            case "SELECT":
+                mysqli_data_seek($result, 0);
+                $data = mysqli_fetch_all($result, MYSQLI_ASSOC);
+                break;
+            case "INSERT":
+                $data = mysqli_affected_rows($mysqli);
+                $data == 1 && $data = mysqli_insert_id($mysqli);
+                break;
+            case "UPDATE":
+                $data = mysqli_affected_rows($mysqli);
+                break;
+            case "DETELE":
+                $data = mysqli_affected_rows($mysqli);
+                break;
+            default:
+                $data = $result;
+                break;
+        }
+
+        if (is_object($result)) {
+            mysqli_free_result($result);
+        }
+
+        return $data;
+    }
+
+    /**
+     * 执行sql语句
+     * @param $sql
+     * @param callable $callback
+     * @param null $socket
+     * @param bool $retain
+     * @return bool
+     */
+    public function query($sql, callable $callback, $socket = null, $retain = false)
+    {
+        //实时创建连接池
+        if (is_null($socket)) {
+            if (count($this->idle_pool) == 0) {
+                if ($this->connection_num < $this->pool_size) {
+                    $this->createConnection();
+                } else {
+                    return $this->pushWaitQueue($sql, $callback, $retain);
+                }
             }
         } else {
-            $this->doQuery($sql, $callback);
+            if (!isset($this->work_pool[$socket])) {
+                return false;
+            }
         }
+
+        return $this->doQuery($sql, $callback, $socket, $retain);
     }
 
     /**
-     * @param string $sql
+     * 添加sql到工作池 使用指定socket来执行事务
+     * @param $sql
      * @param callable $callback
+     * @param null $socket
+     * @param bool $retain 是否保持该连接繁忙
+     * @return bool
      */
-    protected function doQuery($sql, callable $callback)
+    protected function doQuery($sql, callable $callback, $socket = null, $retain = false)
     {
-        //remove from idle pool
-        $db = array_pop($this->idle_pool);
+        //从空闲池或者工作池选定socket
+        if (is_null($socket)) {
+            $db = array_pop($this->idle_pool);
+        } else {
+            $db = $this->work_pool[$socket]['mysql'];
+        }
 
-        /**
-         * @var \mysqli $mysqli
-         */
+        //断线重连
         $mysqli = $db['object'];
-
         for ($i = 0; $i < 2; $i++) {
             $result = $mysqli->query($sql, MYSQLI_ASYNC);
             if ($result === false) {
@@ -217,10 +261,12 @@ class AsyncMysqliPool
                     }
                 } else {
                     $this->connection_num--;
-                    $this->wait_queue[] = array(
-                        'sql' => $sql,
-                        'callback' => $callback,
-                    );
+                    //这里如果指定socket则直接返回错误
+                    if (is_null($socket)) {
+                        return $this->pushWaitQueue($sql, $callback, $retain);
+                    } else {
+                        return false;
+                    }
                 }
             }
             break;
@@ -229,8 +275,32 @@ class AsyncMysqliPool
         $task['sql'] = $sql;
         $task['callback'] = $callback;
         $task['mysql'] = $db;
+        $task['retain'] = $retain;
 
-        //join to work pool
+        //添加sql到工作池
         $this->work_pool[$db['socket']] = $task;
+
+        return $db['socket'];
+    }
+
+    /**
+     * 入等待队列
+     * @param $sql
+     * @param $callback
+     * @param $retain
+     * @return bool
+     */
+    protected function pushWaitQueue($sql, $callback, $retain)
+    {
+        if ($this->wait_queue_size > 0 && count($this->wait_queue) >= $this->wait_queue_size)
+            return false;
+
+        $this->wait_queue[] = array(
+            'sql' => $sql,
+            'callback' => $callback,
+            "retain" => $retain
+        );
+
+        return true;
     }
 }

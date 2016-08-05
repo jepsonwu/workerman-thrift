@@ -90,6 +90,7 @@ class Db
         if (is_null($this->_mysql)) {
             if ($this->_async) {
                 $this->_mysql = new AsyncMysqliPool($this->_config, $this->_pool_size);
+                //可以设置等待队列上限
             } else {
 
             }
@@ -115,10 +116,12 @@ class Db
      * 异步执行sql语句
      * @param $query
      * @param callable $callback
+     * @param null $socket
+     * @return mixed
      */
-    public function asyncQuery($query, callable $callback)
+    public function asyncQuery($query, callable $callback, $socket = null)
     {
-        $this->select()->query($query, $callback);
+        return $this->mysql()->query($query, $callback, $socket, is_null($socket) ? false : true);
     }
 
     /**
@@ -126,64 +129,73 @@ class Db
      * @param null $numRows
      * @param string $columns
      * @param callable $callback
+     * @return mixed
      */
     public function asyncGet($numRows = null, $columns = '*', callable $callback)
     {
         $column = empty($columns) ? '*' : (is_array($columns) ? implode(', ', $columns) : $columns);
         $query = $this->select()->selectSql($numRows, $column);
-        $this->mysql()->query($query, $callback);//todo 能否在包一层方法
+        return $this->mysql()->query($query, $callback);//todo 能否在包一层方法
     }
 
     /**
      * 异步查询一行
      * @param string $columns
      * @param callable $callback
+     * @return mixed
      */
     public function asyncGetRow($columns = "*", callable $callback)
     {
-        $this->asyncGet(1, $columns, $callback);
+        return $this->asyncGet(1, $columns, $callback);
     }
 
     /**
      * 异步查询一个
      * @param $column
      * @param callable $callback
+     * @return mixed
      */
     public function asyncGetOne($column, callable $callback)
     {
-        $this->asyncGet(1, $column, $callback);
+        return $this->asyncGet(1, $column, $callback);
     }
 
     /**
      * 异步插入
      * @param $data
      * @param callable $callback
+     * @param null $socket
+     * @return mixed
      */
-    public function asyncInsert($data, callable $callback)
+    public function asyncInsert($data, callable $callback, $socket = null)
     {
         $query = $this->select()->insertSql($data);
-        $this->mysql()->query($query, $callback);
+        return $this->mysql()->query($query, $callback, $socket, is_null($socket) ? false : true);
     }
 
     /**
      * 异步更新
      * @param $data
      * @param callable $callback
+     * @param null $socket
+     * @return mixed
      */
-    public function asyncUpdate($data, callable $callback)
+    public function asyncUpdate($data, callable $callback, $socket = null)
     {
         $query = $this->select()->updateSql($data);
-        $this->mysql()->query($query, $callback);
+        return $this->mysql()->query($query, $callback, $socket, is_null($socket) ? false : true);
     }
 
     /**
      * 异步删除
      * @param callable $callback
+     * @param null $socket
+     * @return mixed
      */
-    public function asyncDelete(callable $callback)
+    public function asyncDelete(callable $callback, $socket = null)
     {
         $query = $this->select()->deleteSql();
-        $this->mysql()->query($query, $callback);
+        return $this->mysql()->query($query, $callback, $socket, is_null($socket) ? false : true);
     }
 
     /**
@@ -191,6 +203,7 @@ class Db
      * @param $tables
      * @param callable $callback
      * @param string $columns
+     * @return mixed
      */
     public function asyncTableExists($tables, callable $callback, $columns = "table_name")
     {
@@ -198,6 +211,70 @@ class Db
         empty($tables) && call_user_func($callback, false);
 
         $query = $this->select()->tableExistsSql($this->_config['database'], $tables, $columns);
-        $this->mysql()->query($query, $callback);
+        return $this->mysql()->query($query, $callback);
+    }
+
+    /**
+     * 开启事务自动提交
+     * @param callable $callback
+     * @param null $socket
+     * @return mixed
+     */
+    public function autoCommit(callable $callback, $socket)
+    {
+        $query = $this->select()->autocommitSql(true);
+
+        return $this->mysql()->query($query, $callback, $socket, false);
+    }
+
+    /**
+     * 关闭自动事务提交
+     * @param callable $callback
+     * @return mixed
+     */
+    public function disableAutoCommit(callable $callback)
+    {
+        $query = $this->select()->autocommitSql(false);
+
+        return $this->mysql()->query($query, $callback, null, true);
+    }
+
+    /**
+     * 开启事务
+     * @param $socket
+     * @param callable $callback
+     * @return mixed
+     */
+    public function startTransaction($socket, callable $callback)
+    {
+        $query = $this->select()->startTransactionSql();
+
+        return $this->mysql()->query($query, $callback, $socket, true);
+    }
+
+    /**
+     * 提交事务
+     * @param $socket
+     * @param callable $callback
+     * @return mixed
+     */
+    public function commit($socket, callable $callback)
+    {
+        $query = $this->select()->commitSql();
+
+        return $this->mysql()->query($query, $callback, $socket, true);
+    }
+
+    /**
+     * 回滚事务
+     * @param $socket
+     * @param callable $callback
+     * @return mixed
+     */
+    public function rollback($socket, callable $callback)
+    {
+        $query = $this->select()->rollbackSql();
+
+        return $this->mysql()->query($query, $callback, $socket, true);
     }
 }
