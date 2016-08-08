@@ -12,7 +12,7 @@ use Application\Lib\Database\MysqlBuildQuery;
  * Date: 16/8/3
  * Time: 下午9:17
  */
-class Db
+class DbPool
 {
     public static $_instance = null;
 

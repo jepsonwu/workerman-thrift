@@ -17,7 +17,7 @@ use \stdClass;
  * @version   2.7-master
  */
 
-class MysqliDb
+class Db
 {
 
     /**
