@@ -1,7 +1,9 @@
 <?php
 namespace Application\Services;
 
+
 use Application\Exceptions\HelloWorldException;
+use Application\Lib\Factory;
 
 /**
  * Created by PhpStorm.
@@ -11,9 +13,8 @@ use Application\Exceptions\HelloWorldException;
  */
 class HelloWorldService extends CommonService
 {
-
     /**
-     * 
+     *
      * @param $name
      * @return string
      * @throws HelloWorldException
@@ -33,11 +34,12 @@ class HelloWorldService extends CommonService
 //        Factory::logPoolClear($hash);
 
         //get instance of db
-//        list($hash,$db) = Factory::db();
-//        $db->where("uid", 1);
-//        $nickname = $db->getOne("user", "Nickname");
-//        echo $nickname['Nickname']."\n";
+        list($hash, $db) = Factory::db();
+        $db->where("UID", 1);
+        $nickname = $db->getOne("user", "Name");
 
+//
+//        Factory::dbPoolClear($hash);
         //maybe,you need to destory the instance when nothing to do
 //        Factory::dbPoolClear($hash);
 
@@ -57,6 +59,6 @@ class HelloWorldService extends CommonService
         //exception
         //throw new HelloWorldException("参数错误", HelloWorldException::SAY_HELLO_NAME_FAILED);
 
-        return "Hello {$name}";
+        return "Hello {$name},{$nickname['Name']}";
     }
 }

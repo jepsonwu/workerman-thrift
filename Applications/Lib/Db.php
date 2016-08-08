@@ -263,7 +263,7 @@ class Db
             $this->setPrefix($prefix);
         }
 
-        self::$_instance = $this;
+        //self::$_instance = $this; //增加了引用计数 
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 namespace Application\Lib;
 
-use Application\Exception\CommonException;
+use Application\Exceptions\CommonException;
 
 /**
  * 服务逻辑层上下文处理  request response todo 重写

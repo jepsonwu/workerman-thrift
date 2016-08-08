@@ -147,7 +147,7 @@ class Factory
     {
         empty($param) && $param = self::config("mysql");
         $hash = md5(serialize($param));
-
+        
         if (!isset(self::$_db_pool[$hash]) || is_null(@self::$_db_pool[$hash]->getMysqli()->ping())) {//todo 根据qurey返回error_code判断是否需要重连 效率更高
             self::$_db_pool[$hash] = new Db($param);
         }
@@ -164,7 +164,6 @@ class Factory
         if (is_null($hash)) {
             self::$_db_pool = null;
         } else {
-            isset(self::$_db_pool[$hash]) && self::$_db_pool[$hash]->getMysqli()->close();
             unset(self::$_db_pool[$hash]);
         }
     }
