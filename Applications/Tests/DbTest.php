@@ -20,7 +20,7 @@ class DbTest extends TestCase
     public function tableProvider()
     {
         return [
-            ['gg'],
+            ['user'],
         ];
     }
 
@@ -35,7 +35,7 @@ class DbTest extends TestCase
      * @var null
      */
     public $_socket = null;
-    
+
 
     /**
      * 初始化DB
