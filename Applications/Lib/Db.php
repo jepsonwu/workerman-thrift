@@ -8,7 +8,6 @@ use \stdClass;
  * MysqliDb Class
  *
  * @category  Database Access
- * @package   MysqliDb
  * @author    Jeffery Way <jeffrey@jeffrey-way.com>
  * @author    Josh Campbell <jcampbell@ajillion.com>
  * @author    Alexander V. Butenko <a.butenka@gmail.com>
@@ -18,7 +17,7 @@ use \stdClass;
  * @version   2.7-master
  */
 
-class MysqliDb
+class Db
 {
 
     /**

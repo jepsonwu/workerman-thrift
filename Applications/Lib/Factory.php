@@ -139,7 +139,7 @@ class Factory
     }
 
     /**
-     * 获取DB链接 todo 考虑swoole来做
+     * 获取DB链接 todo 走连接池 异步|同步  中间件或者swoole实现
      * @param array $param
      * @return mixed
      */
@@ -148,8 +148,8 @@ class Factory
         empty($param) && $param = self::config("mysql");
         $hash = md5(serialize($param));
 
-        if (!isset(self::$_db_pool[$hash]) || is_null(@self::$_db_pool[$hash]->getMysqli()->ping())) {//todo 用更好的方法实现
-            self::$_db_pool[$hash] = new MysqliDb($param);
+        if (!isset(self::$_db_pool[$hash]) || is_null(@self::$_db_pool[$hash]->getMysqli()->ping())) {//todo 根据qurey返回error_code判断是否需要重连 效率更高
+            self::$_db_pool[$hash] = new Db($param);
         }
 
         return array($hash, self::$_db_pool[$hash]);
