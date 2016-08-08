@@ -1,5 +1,5 @@
 <?php
-namespace Application\Lib\Database;
+namespace Application\Lib;
 use \mysqli;
 use \mysqli_stmt;
 use \Exception;
