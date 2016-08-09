@@ -2,8 +2,8 @@
 namespace Application\Services;
 
 
-use Application\Exceptions\CommonException;
 use Application\Exceptions\HelloWorldException;
+use Application\Keys\RedisKey;
 use Application\Lib\Factory;
 
 /**
@@ -45,8 +45,10 @@ class HelloWorldService extends CommonService
 //        Factory::dbPoolClear($hash);
 
         //get instance of redis
-//        list($hash, $client) = Factory::redis();
-//        $name = $client->get(RedisKey::HELLO_WORLD_NAME);
+        list($hash, $redis) = Factory::redis();
+        $redis_name = $redis->get(RedisKey::HELLO_WORLD_NAME);
+        if (is_null($redis_name))
+            $redis->set(RedisKey::HELLO_WORLD_NAME, "redis jepson");
 
         //maybe,you need to destory the instance when nothing to do
 //        Factory::redisPoolClear($hash);
@@ -60,6 +62,6 @@ class HelloWorldService extends CommonService
         //exception
         //throw new HelloWorldException("参数错误", HelloWorldException::SAY_HELLO_NAME_FAILED);
 
-        return "Hello {$name},{$nickname['Name']}";
+        return "Hello {$name},{$nickname['Name']},{$redis_name}";
     }
 }

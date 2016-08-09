@@ -176,7 +176,7 @@ class Factory
      */
     public static function redis($param = array())
     {
-        empty($param) && $param == self::config('redis');
+        empty($param) && $param = self::config("redis");
         $hash = md5(serialize($param));
 
         if (!isset(self::$_redis_pool[$hash]) || !self::$_redis_pool[$hash]->isConnected()) {
@@ -244,7 +244,7 @@ class Factory
         } else {//根据实际情况处理异常
             //todo 异步
             list($hash, $logger) = self::log("exception", "exception.log");
-            $logger->error($e->__toString());
+            $logger->error('[' . $e->getCode() . ']' . $e->getMessage());
 
             $code = CommonException::SYSTEM_EXCEPTION;
             $message = "系统异常!";
