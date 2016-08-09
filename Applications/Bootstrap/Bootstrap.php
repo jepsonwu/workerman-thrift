@@ -21,3 +21,6 @@ require_once APPLICATION_PATH . "../vendor/autoload.php";
 
 //timezone
 date_default_timezone_set(\Application\Lib\Factory::config('timezone', 'UTC'));
+
+//set encoding
+mb_internal_encoding(\Application\Lib\Factory::config('encoding'));

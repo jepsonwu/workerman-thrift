@@ -12,7 +12,7 @@ class HelloWorldHandler implements HelloWorldIf
             $helloWorldService = new HelloWorldService();
             $return = $helloWorldService->sayHello($name);
         } catch (\Exception $e) {
-            return Factory::context()->failedReturn($e->getCode(), $e->getMessage());
+            return Factory::exceptionHandler($e);
         }
 
         //return data what using json protocol

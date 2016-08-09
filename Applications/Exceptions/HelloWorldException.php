@@ -1,7 +1,7 @@
 <?php
 namespace Application\Exceptions;
 /**
- * 以服务为单位  定义异常错误代码
+ * 以服务为单位  定义异常错误处理
  *
  * Created by PhpStorm.
  * User: jepson

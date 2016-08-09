@@ -1,6 +1,7 @@
 <?php
 namespace Application\Lib;
 
+use Application\Exceptions\CommonException;
 use Noodlehaus\Config;
 use Predis\Client;
 use Monolog\Logger;
@@ -147,7 +148,7 @@ class Factory
     {
         empty($param) && $param = self::config("mysql");
         $hash = md5(serialize($param));
-        
+
         if (!isset(self::$_db_pool[$hash]) || is_null(@self::$_db_pool[$hash]->getMysqli()->ping())) {//todo 根据qurey返回error_code判断是否需要重连 效率更高
             self::$_db_pool[$hash] = new Db($param);
         }
@@ -228,5 +229,27 @@ class Factory
         } else {
             unset(self::$_mongo_pool[$hash]);
         }
+    }
+
+    /**
+     * 异常处理
+     * @param $e
+     * @return mixed
+     */
+    public static function exceptionHandler($e)
+    {
+        if ($e instanceof CommonException) {
+            $code = $e->getCode();
+            $message = $e->getMessage();
+        } else {//根据实际情况处理异常
+            //todo 异步
+            list($hash, $logger) = self::log("exception", "exception.log");
+            $logger->error($e->__toString());
+
+            $code = CommonException::SYSTEM_EXCEPTION;
+            $message = "系统异常!";
+        }
+
+        return self::context()->failedReturn($code, $message);
     }
 }

@@ -1,9 +1,11 @@
 <?php
 namespace Application\Lib;
+
 use \mysqli;
 use \mysqli_stmt;
 use \Exception;
 use \stdClass;
+
 /**
  * MysqliDb Class
  *
@@ -16,7 +18,6 @@ use \stdClass;
  * @link      http://github.com/joshcam/PHP-MySQLi-Database-Class
  * @version   2.7-master
  */
-
 class Db
 {
 
@@ -263,6 +264,7 @@ class Db
             $this->setPrefix($prefix);
         }
 
+        $this->mysqli();
         //self::$_instance = $this; //增加了引用计数 
     }
 
@@ -310,7 +312,7 @@ class Db
     {
         return $this->_mysqli;
     }
-    
+
     /**
      * A method of returning the static instance to allow access to the
      * instantiated object from within another class.

@@ -3,4 +3,4 @@ workerman.log
 Applications/Statistics/data/
 Applications/Statistics/Config/Cache/
 *.pid
-Applications/Storage/log
+Applications/Storage/

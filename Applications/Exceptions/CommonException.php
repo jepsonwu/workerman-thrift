@@ -1,7 +1,7 @@
 <?php
 namespace Application\Exceptions;
 /**
- * 公共错误代码
+ * 公共错误异常处理
  * Created by PhpStorm.
  * User: jepson
  * Date: 16/7/29
@@ -14,4 +14,6 @@ class CommonException extends \Exception
 
 
     const INVALID_ARGUMENTS = 1001;//参数错误
+
+    const SYSTEM_EXCEPTION = 1002;//系统异常  例如DB连接错误
 }
