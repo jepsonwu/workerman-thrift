@@ -19,10 +19,10 @@ class SmsHandler implements SmsIf
             $smsService = new SmsService();
             $return = $smsService->sendMsg($mobile, $msg);
         } catch (\Exception $e) {
-            Factory::exceptionHandler($e);
+            return Factory::exceptionHandler($e);
         }
 
-        Factory::context()->successReturn($return);
+        return Factory::context()->successReturn($return);
     }
 
     public function sendVoiceMsg($mobile, $msg)
@@ -31,9 +31,9 @@ class SmsHandler implements SmsIf
             $smsService = new SmsService();
             $return = $smsService->sendVoiceMsg($mobile, $msg);
         } catch (\Exception $e) {
-            Factory::exceptionHandler($e);
+            return Factory::exceptionHandler($e);
         }
 
-        Factory::context()->successReturn($return);
+        return Factory::context()->successReturn($return);
     }
 }
