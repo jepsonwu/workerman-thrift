@@ -16,4 +16,6 @@ class CommonException extends \Exception
     const INVALID_ARGUMENTS = 1001;//参数错误
 
     const SYSTEM_EXCEPTION = 1002;//系统异常  例如DB连接错误
+
+    const INVALID_MOBILE = 2001;//手机号不正确
 }
