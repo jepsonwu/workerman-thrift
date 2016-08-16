@@ -10,5 +10,6 @@ namespace Application\Keys;
  */
 class RedisKey
 {
-    const HELLO_WORLD_NAME = 'hello_world_name';
+    //短信服务
+    const SMS_FREQUENCY_LIMITATION = 'sms_frequency_limitation_';//频率限制
 }
