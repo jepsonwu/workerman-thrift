@@ -4,3 +4,4 @@ Applications/Statistics/data/
 Applications/Statistics/Config/Cache/
 *.pid
 Applications/Storage/
+Applications/ThriftRpc/start.php
