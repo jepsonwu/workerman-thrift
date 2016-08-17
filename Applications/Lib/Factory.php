@@ -179,7 +179,7 @@ class Factory
         empty($param) && $param = self::config("redis");
         $hash = md5(serialize($param));
 
-        if (!isset(self::$_redis_pool[$hash]) || !self::$_redis_pool[$hash]->isConnected()) {
+        if (!isset(self::$_redis_pool[$hash]) || self::$_redis_pool[$hash]->isConnected()) {//todo 这里是反的
             self::$_redis_pool[$hash] = new Client($param);
         }
 
