@@ -11,4 +11,5 @@ class SmsException extends CommonException
     const SEND_MSG_FAILED = 10001;//发送短信失败
     const SEND_VOICE_MSG_FAILED = 10002;//发送语音失败
     const SEND_MSG_FREQUENT = 10003;//发送短信频繁的
+    const VERIFY_CAPTCHA_FAILED = 10004;//验证码错误
 }

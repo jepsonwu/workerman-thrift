@@ -8,5 +8,5 @@ namespace Application\Services;
  */
 class CommonService
 {
-
+    
 }

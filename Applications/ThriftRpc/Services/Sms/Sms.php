@@ -20,15 +20,35 @@ interface SmsIf {
   /**
    * @param string $mobile
    * @param string $msg
+   * @param string $ip
    * @return string
    */
-  public function sendMsg($mobile, $msg);
+  public function sendMsg($mobile, $msg, $ip);
   /**
    * @param string $mobile
    * @param string $msg
+   * @param string $ip
    * @return string
    */
-  public function sendVoiceMsg($mobile, $msg);
+  public function sendVoiceMsg($mobile, $msg, $ip);
+  /**
+   * @param string $mobile
+   * @param string $ip
+   * @return string
+   */
+  public function sendCaptcha($mobile, $ip);
+  /**
+   * @param string $mobile
+   * @param string $ip
+   * @return string
+   */
+  public function sendVoiceCaptcha($mobile, $ip);
+  /**
+   * @param string $mobile
+   * @param int $captcha
+   * @return string
+   */
+  public function verifyCaptcha($mobile, $captcha);
 }
 
 class SmsClient implements \Services\Sms\SmsIf {
@@ -42,17 +62,18 @@ class SmsClient implements \Services\Sms\SmsIf {
     $this->output_ = $output ? $output : $input;
   }
 
-  public function sendMsg($mobile, $msg)
+  public function sendMsg($mobile, $msg, $ip)
   {
-    $this->send_sendMsg($mobile, $msg);
+    $this->send_sendMsg($mobile, $msg, $ip);
     return $this->recv_sendMsg();
   }
 
-  public function send_sendMsg($mobile, $msg)
+  public function send_sendMsg($mobile, $msg, $ip)
   {
     $args = new \Services\Sms\Sms_sendMsg_args();
     $args->mobile = $mobile;
     $args->msg = $msg;
+    $args->ip = $ip;
     $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
@@ -94,17 +115,18 @@ class SmsClient implements \Services\Sms\SmsIf {
     throw new \Exception("sendMsg failed: unknown result");
   }
 
-  public function sendVoiceMsg($mobile, $msg)
+  public function sendVoiceMsg($mobile, $msg, $ip)
   {
-    $this->send_sendVoiceMsg($mobile, $msg);
+    $this->send_sendVoiceMsg($mobile, $msg, $ip);
     return $this->recv_sendVoiceMsg();
   }
 
-  public function send_sendVoiceMsg($mobile, $msg)
+  public function send_sendVoiceMsg($mobile, $msg, $ip)
   {
     $args = new \Services\Sms\Sms_sendVoiceMsg_args();
     $args->mobile = $mobile;
     $args->msg = $msg;
+    $args->ip = $ip;
     $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
@@ -146,6 +168,162 @@ class SmsClient implements \Services\Sms\SmsIf {
     throw new \Exception("sendVoiceMsg failed: unknown result");
   }
 
+  public function sendCaptcha($mobile, $ip)
+  {
+    $this->send_sendCaptcha($mobile, $ip);
+    return $this->recv_sendCaptcha();
+  }
+
+  public function send_sendCaptcha($mobile, $ip)
+  {
+    $args = new \Services\Sms\Sms_sendCaptcha_args();
+    $args->mobile = $mobile;
+    $args->ip = $ip;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'sendCaptcha', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('sendCaptcha', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_sendCaptcha()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\Services\Sms\Sms_sendCaptcha_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \Services\Sms\Sms_sendCaptcha_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    throw new \Exception("sendCaptcha failed: unknown result");
+  }
+
+  public function sendVoiceCaptcha($mobile, $ip)
+  {
+    $this->send_sendVoiceCaptcha($mobile, $ip);
+    return $this->recv_sendVoiceCaptcha();
+  }
+
+  public function send_sendVoiceCaptcha($mobile, $ip)
+  {
+    $args = new \Services\Sms\Sms_sendVoiceCaptcha_args();
+    $args->mobile = $mobile;
+    $args->ip = $ip;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'sendVoiceCaptcha', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('sendVoiceCaptcha', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_sendVoiceCaptcha()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\Services\Sms\Sms_sendVoiceCaptcha_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \Services\Sms\Sms_sendVoiceCaptcha_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    throw new \Exception("sendVoiceCaptcha failed: unknown result");
+  }
+
+  public function verifyCaptcha($mobile, $captcha)
+  {
+    $this->send_verifyCaptcha($mobile, $captcha);
+    return $this->recv_verifyCaptcha();
+  }
+
+  public function send_verifyCaptcha($mobile, $captcha)
+  {
+    $args = new \Services\Sms\Sms_verifyCaptcha_args();
+    $args->mobile = $mobile;
+    $args->captcha = $captcha;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'verifyCaptcha', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('verifyCaptcha', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_verifyCaptcha()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\Services\Sms\Sms_verifyCaptcha_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \Services\Sms\Sms_verifyCaptcha_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    throw new \Exception("verifyCaptcha failed: unknown result");
+  }
+
 }
 
 // HELPER FUNCTIONS AND STRUCTURES
@@ -161,6 +339,10 @@ class Sms_sendMsg_args {
    * @var string
    */
   public $msg = null;
+  /**
+   * @var string
+   */
+  public $ip = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -173,6 +355,10 @@ class Sms_sendMsg_args {
           'var' => 'msg',
           'type' => TType::STRING,
           ),
+        3 => array(
+          'var' => 'ip',
+          'type' => TType::STRING,
+          ),
         );
     }
     if (is_array($vals)) {
@@ -181,6 +367,9 @@ class Sms_sendMsg_args {
       }
       if (isset($vals['msg'])) {
         $this->msg = $vals['msg'];
+      }
+      if (isset($vals['ip'])) {
+        $this->ip = $vals['ip'];
       }
     }
   }
@@ -218,6 +407,13 @@ class Sms_sendMsg_args {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ip);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -239,6 +435,11 @@ class Sms_sendMsg_args {
     if ($this->msg !== null) {
       $xfer += $output->writeFieldBegin('msg', TType::STRING, 2);
       $xfer += $output->writeString($this->msg);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ip !== null) {
+      $xfer += $output->writeFieldBegin('ip', TType::STRING, 3);
+      $xfer += $output->writeString($this->ip);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -334,6 +535,10 @@ class Sms_sendVoiceMsg_args {
    * @var string
    */
   public $msg = null;
+  /**
+   * @var string
+   */
+  public $ip = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -346,6 +551,10 @@ class Sms_sendVoiceMsg_args {
           'var' => 'msg',
           'type' => TType::STRING,
           ),
+        3 => array(
+          'var' => 'ip',
+          'type' => TType::STRING,
+          ),
         );
     }
     if (is_array($vals)) {
@@ -354,6 +563,9 @@ class Sms_sendVoiceMsg_args {
       }
       if (isset($vals['msg'])) {
         $this->msg = $vals['msg'];
+      }
+      if (isset($vals['ip'])) {
+        $this->ip = $vals['ip'];
       }
     }
   }
@@ -391,6 +603,13 @@ class Sms_sendVoiceMsg_args {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ip);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -412,6 +631,11 @@ class Sms_sendVoiceMsg_args {
     if ($this->msg !== null) {
       $xfer += $output->writeFieldBegin('msg', TType::STRING, 2);
       $xfer += $output->writeString($this->msg);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ip !== null) {
+      $xfer += $output->writeFieldBegin('ip', TType::STRING, 3);
+      $xfer += $output->writeString($this->ip);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -496,70 +720,523 @@ class Sms_sendVoiceMsg_result {
 
 }
 
-class SmsProcessor {
-  protected $handler_ = null;
-  public function __construct($handler) {
-    $this->handler_ = $handler;
+class Sms_sendCaptcha_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $mobile = null;
+  /**
+   * @var string
+   */
+  public $ip = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'mobile',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'ip',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['mobile'])) {
+        $this->mobile = $vals['mobile'];
+      }
+      if (isset($vals['ip'])) {
+        $this->ip = $vals['ip'];
+      }
+    }
   }
 
-  public function process($input, $output) {
-    $rseqid = 0;
+  public function getName() {
+    return 'Sms_sendCaptcha_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
     $fname = null;
-    $mtype = 0;
-
-    $input->readMessageBegin($fname, $mtype, $rseqid);
-    $methodname = 'process_'.$fname;
-    if (!method_exists($this, $methodname)) {
-      $input->skip(TType::STRUCT);
-      $input->readMessageEnd();
-      $x = new TApplicationException('Function '.$fname.' not implemented.', TApplicationException::UNKNOWN_METHOD);
-      $output->writeMessageBegin($fname, TMessageType::EXCEPTION, $rseqid);
-      $x->write($output);
-      $output->writeMessageEnd();
-      $output->getTransport()->flush();
-      return;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->mobile);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ip);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
     }
-    $this->$methodname($rseqid, $input, $output);
-    return true;
+    $xfer += $input->readStructEnd();
+    return $xfer;
   }
 
-  protected function process_sendMsg($seqid, $input, $output) {
-    $args = new \Services\Sms\Sms_sendMsg_args();
-    $args->read($input);
-    $input->readMessageEnd();
-    $result = new \Services\Sms\Sms_sendMsg_result();
-    $result->success = $this->handler_->sendMsg($args->mobile, $args->msg);
-    $bin_accel = ($output instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
-    if ($bin_accel)
-    {
-      thrift_protocol_write_binary($output, 'sendMsg', TMessageType::REPLY, $result, $seqid, $output->isStrictWrite());
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('Sms_sendCaptcha_args');
+    if ($this->mobile !== null) {
+      $xfer += $output->writeFieldBegin('mobile', TType::STRING, 1);
+      $xfer += $output->writeString($this->mobile);
+      $xfer += $output->writeFieldEnd();
     }
-    else
-    {
-      $output->writeMessageBegin('sendMsg', TMessageType::REPLY, $seqid);
-      $result->write($output);
-      $output->writeMessageEnd();
-      $output->getTransport()->flush();
+    if ($this->ip !== null) {
+      $xfer += $output->writeFieldBegin('ip', TType::STRING, 2);
+      $xfer += $output->writeString($this->ip);
+      $xfer += $output->writeFieldEnd();
     }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
   }
-  protected function process_sendVoiceMsg($seqid, $input, $output) {
-    $args = new \Services\Sms\Sms_sendVoiceMsg_args();
-    $args->read($input);
-    $input->readMessageEnd();
-    $result = new \Services\Sms\Sms_sendVoiceMsg_result();
-    $result->success = $this->handler_->sendVoiceMsg($args->mobile, $args->msg);
-    $bin_accel = ($output instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
-    if ($bin_accel)
-    {
-      thrift_protocol_write_binary($output, 'sendVoiceMsg', TMessageType::REPLY, $result, $seqid, $output->isStrictWrite());
-    }
-    else
-    {
-      $output->writeMessageBegin('sendVoiceMsg', TMessageType::REPLY, $seqid);
-      $result->write($output);
-      $output->writeMessageEnd();
-      $output->getTransport()->flush();
-    }
-  }
+
 }
+
+class Sms_sendCaptcha_result {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $success = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'Sms_sendCaptcha_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->success);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('Sms_sendCaptcha_result');
+    if ($this->success !== null) {
+      $xfer += $output->writeFieldBegin('success', TType::STRING, 0);
+      $xfer += $output->writeString($this->success);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class Sms_sendVoiceCaptcha_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $mobile = null;
+  /**
+   * @var string
+   */
+  public $ip = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'mobile',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'ip',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['mobile'])) {
+        $this->mobile = $vals['mobile'];
+      }
+      if (isset($vals['ip'])) {
+        $this->ip = $vals['ip'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'Sms_sendVoiceCaptcha_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->mobile);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ip);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('Sms_sendVoiceCaptcha_args');
+    if ($this->mobile !== null) {
+      $xfer += $output->writeFieldBegin('mobile', TType::STRING, 1);
+      $xfer += $output->writeString($this->mobile);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ip !== null) {
+      $xfer += $output->writeFieldBegin('ip', TType::STRING, 2);
+      $xfer += $output->writeString($this->ip);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class Sms_sendVoiceCaptcha_result {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $success = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'Sms_sendVoiceCaptcha_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->success);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('Sms_sendVoiceCaptcha_result');
+    if ($this->success !== null) {
+      $xfer += $output->writeFieldBegin('success', TType::STRING, 0);
+      $xfer += $output->writeString($this->success);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class Sms_verifyCaptcha_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $mobile = null;
+  /**
+   * @var int
+   */
+  public $captcha = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'mobile',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'captcha',
+          'type' => TType::I32,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['mobile'])) {
+        $this->mobile = $vals['mobile'];
+      }
+      if (isset($vals['captcha'])) {
+        $this->captcha = $vals['captcha'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'Sms_verifyCaptcha_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->mobile);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->captcha);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('Sms_verifyCaptcha_args');
+    if ($this->mobile !== null) {
+      $xfer += $output->writeFieldBegin('mobile', TType::STRING, 1);
+      $xfer += $output->writeString($this->mobile);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->captcha !== null) {
+      $xfer += $output->writeFieldBegin('captcha', TType::I32, 2);
+      $xfer += $output->writeI32($this->captcha);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class Sms_verifyCaptcha_result {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $success = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'Sms_verifyCaptcha_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->success);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('Sms_verifyCaptcha_result');
+    if ($this->success !== null) {
+      $xfer += $output->writeFieldBegin('success', TType::STRING, 0);
+      $xfer += $output->writeString($this->success);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 

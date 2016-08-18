@@ -247,7 +247,7 @@ class Factory
             $logger->error('[' . $e->getCode() . ']' . $e->getMessage());
 
             $code = CommonException::SYSTEM_EXCEPTION;
-            $message = "系统异常!";
+            $message = "System exception!";
         }
 
         return self::context()->failedReturn($code, $message);
