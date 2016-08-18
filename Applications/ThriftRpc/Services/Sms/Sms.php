@@ -45,7 +45,7 @@ interface SmsIf {
   public function sendVoiceCaptcha($mobile, $ip);
   /**
    * @param string $mobile
-   * @param int $captcha
+   * @param string $captcha
    * @return string
    */
   public function verifyCaptcha($mobile, $captcha);
@@ -1074,7 +1074,7 @@ class Sms_verifyCaptcha_args {
    */
   public $mobile = null;
   /**
-   * @var int
+   * @var string
    */
   public $captcha = null;
 
@@ -1087,7 +1087,7 @@ class Sms_verifyCaptcha_args {
           ),
         2 => array(
           'var' => 'captcha',
-          'type' => TType::I32,
+          'type' => TType::STRING,
           ),
         );
     }
@@ -1128,8 +1128,8 @@ class Sms_verifyCaptcha_args {
           }
           break;
         case 2:
-          if ($ftype == TType::I32) {
-            $xfer += $input->readI32($this->captcha);
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->captcha);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -1153,8 +1153,8 @@ class Sms_verifyCaptcha_args {
       $xfer += $output->writeFieldEnd();
     }
     if ($this->captcha !== null) {
-      $xfer += $output->writeFieldBegin('captcha', TType::I32, 2);
-      $xfer += $output->writeI32($this->captcha);
+      $xfer += $output->writeFieldBegin('captcha', TType::STRING, 2);
+      $xfer += $output->writeString($this->captcha);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -1239,4 +1239,127 @@ class Sms_verifyCaptcha_result {
 
 }
 
+class SmsProcessor {
+  protected $handler_ = null;
+  public function __construct($handler) {
+    $this->handler_ = $handler;
+  }
+
+  public function process($input, $output) {
+    $rseqid = 0;
+    $fname = null;
+    $mtype = 0;
+
+    $input->readMessageBegin($fname, $mtype, $rseqid);
+    $methodname = 'process_'.$fname;
+    if (!method_exists($this, $methodname)) {
+      $input->skip(TType::STRUCT);
+      $input->readMessageEnd();
+      $x = new TApplicationException('Function '.$fname.' not implemented.', TApplicationException::UNKNOWN_METHOD);
+      $output->writeMessageBegin($fname, TMessageType::EXCEPTION, $rseqid);
+      $x->write($output);
+      $output->writeMessageEnd();
+      $output->getTransport()->flush();
+      return;
+    }
+    $this->$methodname($rseqid, $input, $output);
+    return true;
+  }
+
+  protected function process_sendMsg($seqid, $input, $output) {
+    $args = new \Services\Sms\Sms_sendMsg_args();
+    $args->read($input);
+    $input->readMessageEnd();
+    $result = new \Services\Sms\Sms_sendMsg_result();
+    $result->success = $this->handler_->sendMsg($args->mobile, $args->msg, $args->ip);
+    $bin_accel = ($output instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($output, 'sendMsg', TMessageType::REPLY, $result, $seqid, $output->isStrictWrite());
+    }
+    else
+    {
+      $output->writeMessageBegin('sendMsg', TMessageType::REPLY, $seqid);
+      $result->write($output);
+      $output->writeMessageEnd();
+      $output->getTransport()->flush();
+    }
+  }
+  protected function process_sendVoiceMsg($seqid, $input, $output) {
+    $args = new \Services\Sms\Sms_sendVoiceMsg_args();
+    $args->read($input);
+    $input->readMessageEnd();
+    $result = new \Services\Sms\Sms_sendVoiceMsg_result();
+    $result->success = $this->handler_->sendVoiceMsg($args->mobile, $args->msg, $args->ip);
+    $bin_accel = ($output instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($output, 'sendVoiceMsg', TMessageType::REPLY, $result, $seqid, $output->isStrictWrite());
+    }
+    else
+    {
+      $output->writeMessageBegin('sendVoiceMsg', TMessageType::REPLY, $seqid);
+      $result->write($output);
+      $output->writeMessageEnd();
+      $output->getTransport()->flush();
+    }
+  }
+  protected function process_sendCaptcha($seqid, $input, $output) {
+    $args = new \Services\Sms\Sms_sendCaptcha_args();
+    $args->read($input);
+    $input->readMessageEnd();
+    $result = new \Services\Sms\Sms_sendCaptcha_result();
+    $result->success = $this->handler_->sendCaptcha($args->mobile, $args->ip);
+    $bin_accel = ($output instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($output, 'sendCaptcha', TMessageType::REPLY, $result, $seqid, $output->isStrictWrite());
+    }
+    else
+    {
+      $output->writeMessageBegin('sendCaptcha', TMessageType::REPLY, $seqid);
+      $result->write($output);
+      $output->writeMessageEnd();
+      $output->getTransport()->flush();
+    }
+  }
+  protected function process_sendVoiceCaptcha($seqid, $input, $output) {
+    $args = new \Services\Sms\Sms_sendVoiceCaptcha_args();
+    $args->read($input);
+    $input->readMessageEnd();
+    $result = new \Services\Sms\Sms_sendVoiceCaptcha_result();
+    $result->success = $this->handler_->sendVoiceCaptcha($args->mobile, $args->ip);
+    $bin_accel = ($output instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($output, 'sendVoiceCaptcha', TMessageType::REPLY, $result, $seqid, $output->isStrictWrite());
+    }
+    else
+    {
+      $output->writeMessageBegin('sendVoiceCaptcha', TMessageType::REPLY, $seqid);
+      $result->write($output);
+      $output->writeMessageEnd();
+      $output->getTransport()->flush();
+    }
+  }
+  protected function process_verifyCaptcha($seqid, $input, $output) {
+    $args = new \Services\Sms\Sms_verifyCaptcha_args();
+    $args->read($input);
+    $input->readMessageEnd();
+    $result = new \Services\Sms\Sms_verifyCaptcha_result();
+    $result->success = $this->handler_->verifyCaptcha($args->mobile, $args->captcha);
+    $bin_accel = ($output instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($output, 'verifyCaptcha', TMessageType::REPLY, $result, $seqid, $output->isStrictWrite());
+    }
+    else
+    {
+      $output->writeMessageBegin('verifyCaptcha', TMessageType::REPLY, $seqid);
+      $result->write($output);
+      $output->writeMessageEnd();
+      $output->getTransport()->flush();
+    }
+  }
+}
 
