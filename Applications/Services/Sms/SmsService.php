@@ -1,5 +1,5 @@
 <?php
-namespace Application\Services;
+namespace Application\Services\Sms;
 
 use Application\Exceptions\CommonException;
 use Application\Exceptions\SmsException;
@@ -7,6 +7,7 @@ use Application\Keys\RedisKey;
 use Application\Lib\Factory;
 use Application\Lib\Helper;
 use Respect\Validation\Validator;
+use Application\Services\CommonService;
 
 /**
  * 短信服务

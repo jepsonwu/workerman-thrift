@@ -2,7 +2,7 @@
 namespace Services\Sms;
 
 use Application\Lib\Factory;
-use Application\Services\SmsService;
+use Application\Services\Sms\SmsService;
 
 /**
  * 短信服务
