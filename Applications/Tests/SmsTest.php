@@ -12,11 +12,11 @@ class SmsTest extends TestCase
 {
     /**
      * 初始化服务
-     * @return \Application\Services\SmsService
+     * @return \Application\Services\Sms\SmsService
      */
     public function testSmsServiceConstruct()
     {
-        return new Application\Services\SmsService();
+        return new Application\Services\Sms\SmsService();
     }
 
     /**

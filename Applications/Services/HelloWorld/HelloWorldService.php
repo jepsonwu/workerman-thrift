@@ -1,8 +1,6 @@
 <?php
 namespace Application\Services;
 
-
-use Application\Exceptions\HelloWorldException;
 use Application\Keys\RedisKey;
 use Application\Lib\Factory;
 
@@ -22,8 +20,8 @@ class HelloWorldService extends CommonService
      */
     public function sayHello($name)
     {
-        if (!preg_match("/^[a-zA-Z]+$/", $name))
-            throw new HelloWorldException("name failed", HelloWorldException::INVALID_ARGUMENTS);
+        //if (!preg_match("/^[a-zA-Z]+$/", $name))
+        //  throw new HelloWorldException("name failed", HelloWorldException::INVALID_ARGUMENTS);
         //get conf
 //        $conf = Factory::config("timezone");
 
@@ -35,9 +33,9 @@ class HelloWorldService extends CommonService
 //        Factory::logPoolClear($hash);
 
         //get instance of db
-        list($hash, $db) = Factory::db();
-        $db->where("UID", 1);
-        $nickname = $db->getOne("user", "Name");
+//        list($hash, $db) = Factory::db();
+//        $db->where("UID", 1);
+//        $nickname = $db->getOne("user", "Name");
 
 //
 //        Factory::dbPoolClear($hash);
@@ -45,10 +43,10 @@ class HelloWorldService extends CommonService
 //        Factory::dbPoolClear($hash);
 
         //get instance of redis
-        list($hash, $redis) = Factory::redis();
-        $redis_name = $redis->get(RedisKey::HELLO_WORLD_NAME);
-        if (is_null($redis_name))
-            $redis->set(RedisKey::HELLO_WORLD_NAME, "redis jepson");
+//        list($hash, $redis) = Factory::redis();
+//        $redis_name = $redis->get(RedisKey::HELLO_WORLD_NAME);
+//        if (is_null($redis_name))
+//            $redis->set(RedisKey::HELLO_WORLD_NAME, "redis jepson");
 
         //maybe,you need to destory the instance when nothing to do
 //        Factory::redisPoolClear($hash);
@@ -62,6 +60,7 @@ class HelloWorldService extends CommonService
         //exception
         //throw new HelloWorldException("参数错误", HelloWorldException::SAY_HELLO_NAME_FAILED);
 
-        return "Hello {$name},{$nickname['Name']},{$redis_name}";
+        return "Hello {$name}";
+        //return "Hello {$name},{$nickname['Name']},{$redis_name}";
     }
 }

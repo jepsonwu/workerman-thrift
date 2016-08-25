@@ -6,7 +6,7 @@ namespace Application\Services;
  * Date: 16/8/1
  * Time: 上午10:55
  */
-class CommonService
+abstract class CommonService
 {
-    
+
 }

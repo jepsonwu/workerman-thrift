@@ -58,7 +58,8 @@ class SmsService extends CommonService
      */
     public function sendCaptcha($mobile, $ip)
     {
-        return $this->captcha($mobile, $ip);
+        return "{$mobile} {$ip}";
+        //return $this->captcha($mobile, $ip);
     }
 
     /**

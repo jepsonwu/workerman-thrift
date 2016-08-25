@@ -3,6 +3,7 @@ namespace Services\Sms;
 
 use Application\Lib\Factory;
 use Application\Services\Sms\SmsService;
+use Services\AbstractService;
 
 /**
  * 短信服务
@@ -11,7 +12,7 @@ use Application\Services\Sms\SmsService;
  * Date: 16/8/15
  * Time: 下午2:30
  */
-class SmsHandler implements SmsIf
+class SmsHandler extends AbstractService
 {
     /**
      *
@@ -19,17 +20,17 @@ class SmsHandler implements SmsIf
      * @param string $ip
      * @return mixed
      */
-    public function sendCaptcha($mobile, $ip)
-    {
-        try {
-            $smsService = new SmsService();
-            $return = $smsService->sendCaptcha($mobile, $ip);
-        } catch (\Exception $e) {
-            return Factory::exceptionHandler($e);
-        }
-
-        return Factory::context()->successReturn($return);
-    }
+//    public function sendCaptcha($mobile, $ip)
+//    {
+//        try {
+//            $smsService = new SmsService();
+//            $return = $smsService->sendCaptcha($mobile, $ip);
+//        } catch (\Exception $e) {
+//            return Factory::exceptionHandler($e);
+//        }
+//
+//        return Factory::context()->successReturn($return);
+//    }
 
     /**
      * @param string $mobile
