@@ -93,24 +93,24 @@ class ThriftWorker extends Worker
             $this->name = $this->class;
         }
 
+        // 检查抽象类是否存在
+        require_once THRIFT_ROOT . '/Services/Abstract.php';
+
+        $abstrat_class_name = "\\Services\\AbstractService";
+        if (!class_exists($abstrat_class_name)) {
+            ThriftWorker::log("Class $abstrat_class_name not found");
+            return;
+        }
+
         // 载入该服务下的所有文件
         foreach (glob(THRIFT_ROOT . '/Services/' . $this->class . '/*.php') as $php_file) {
             require_once $php_file;
         }
 
-        require_once THRIFT_ROOT . '/Services/Abstract.php';
-
         // 检查类是否存在
         $processor_class_name = "\\Services\\" . $this->class . "\\" . $this->class . 'Processor';
         if (!class_exists($processor_class_name)) {
             ThriftWorker::log("Class $processor_class_name not found");
-            return;
-        }
-
-        // 检查抽象类是否存在
-        $abstrat_class_name = "\\Services\\Abstract";
-        if (!class_exists($abstrat_class_name)) {
-            ThriftWorker::log("Class $abstrat_class_name not found");
             return;
         }
 

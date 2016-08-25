@@ -14,7 +14,7 @@ use \ReflectionMethod;
  */
 abstract class AbstractService
 {
-    protected $_service_class = null;
+    protected $_service_name = null;
 
     protected $_service_reflection = null;
 
@@ -23,9 +23,11 @@ abstract class AbstractService
     public function __construct()
     {
         //检查是否实现接口
-        $this->_service_class = substr(get_called_class(), 0, -7);
+        $class = get_called_class();
+        $class = substr($class, strrpos($class, "\\") + 1, -7);
 
-        $this->_service_reflection = new ReflectionClass($this->_service_class . 'Service');
+        $this->_service_name = "\\Application\\Services\\{$class}\\{$class}Service";
+        $this->_service_reflection = new ReflectionClass($this->_service_name);
 
         $this->_service_instance = $this->_service_reflection->newInstance();
     }
@@ -37,7 +39,7 @@ abstract class AbstractService
                 throw new \Exception("Method {$name} not found");
             }
 
-            $reflectionMethod = new ReflectionMethod($this->_service_class . 'Service', $name);
+            $reflectionMethod = new ReflectionMethod($this->_service_name, $name);
             $return = $reflectionMethod->invokeArgs($this->_service_instance, $arguments);
         } catch (\Exception $e) {
             return Factory::exceptionHandler($e);
