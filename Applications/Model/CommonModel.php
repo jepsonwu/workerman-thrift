@@ -4,6 +4,8 @@ namespace Application\Model;
 use Application\Lib\Factory;
 use ArrayAccess;
 use Doctrine\Instantiator\Exception\InvalidArgumentException;
+use Application\Lib\Traits\ArrayAccessTrait;
+use IteratorAggregate;
 
 /**
  * Model抽象类
@@ -34,8 +36,10 @@ use Doctrine\Instantiator\Exception\InvalidArgumentException;
  * Date: 16/8/18
  * Time: 下午5:04
  */
-abstract class CommonModel implements ArrayAccess
+abstract class CommonModel implements ArrayAccess, IteratorAggregate
 {
+    use ArrayAccessTrait;
+
     //默认数据库类型 mysql|mongo
     protected $_database_type = 'mysql';
 
@@ -66,7 +70,7 @@ abstract class CommonModel implements ArrayAccess
             throw new InvalidArgumentException("Invalid database type!");
         }
 
-        $this->createConnection();
+        //$this->createConnection();
     }
 
     protected function createConnection()
@@ -134,27 +138,6 @@ abstract class CommonModel implements ArrayAccess
         return count($result) == 1 ? current($result) : $result;
     }
 
-    public function offsetExists($offset)
-    {
-        return isset($this->$offset);
-    }
-
-    public function offsetGet($offset)
-    {
-        return $this->$offset;
-    }
-
-    public function offsetSet($offset, $value)
-    {
-        $this->$offset = $value;
-    }
-
-    public function offsetUnset($offset)
-    {
-        unset($this->$offset);
-    }
-
-
     public function __call($name, $arguments)
     {
         switch ($this->_database_type) {
@@ -181,5 +164,10 @@ abstract class CommonModel implements ArrayAccess
                     break;
             }
         }
+    }
+
+    public function getIterator()
+    {
+        return new \ArrayIterator($this);
     }
 }

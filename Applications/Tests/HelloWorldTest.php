@@ -21,6 +21,15 @@ class HelloWorldTest extends TestCase
 //            require_once $php_file;
 //        }
 //    }
+    public function testDemo()
+    {
+        $model = new Application\Model\Sms\SmsModel();
+        $model['fsdfds']='fsdfdsf';
+        foreach ($model as $key => $val) {
+            echo $val . "\n";
+        }
+        exit;
+    }
 
     /**
      * 生产者返回测试基境
